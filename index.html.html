@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>La búsqueda del tesoro matemático</title>
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;font-family:Arial,Helvetica,sans-serif;
+  background:#f5ead2;color:#352512;overflow:hidden;
+}
+.slide{
+  display:none;width:100vw;height:100vh;min-height:620px;
+  padding:28px;position:relative;overflow:auto;
+}
+.slide.active{display:flex;flex-direction:column}
+h1,h2,h3{font-family:Georgia,serif}
+button{
+  border:0;border-radius:14px;padding:14px 24px;font-size:17px;
+  font-weight:bold;cursor:pointer;background:#7b4b22;color:white;
+  box-shadow:0 4px 0 #4c2c14;
+}
+button:hover{transform:translateY(-1px)}
+button:disabled{opacity:.45;cursor:not-allowed}
+.center{justify-content:center;align-items:center;text-align:center}
+.card{
+  background:#fffaf0;border:3px solid #9b6b35;border-radius:22px;
+  padding:28px;box-shadow:0 8px 20px #0002;max-width:850px;width:100%;
+}
+input[type=text],input[type=number]{
+  width:100%;max-width:480px;padding:15px;border:2px solid #9b6b35;
+  border-radius:12px;font-size:20px;margin:12px 0;background:#fff;
+}
+.small{font-size:15px;color:#765b3d}
+.badge{display:inline-block;padding:7px 12px;border-radius:20px;background:#e4c58d;font-weight:bold}
+.map-wrap{
+  flex:1;display:flex;align-items:center;justify-content:center;
+  position:relative;min-height:520px;
+}
+.map{
+  width:min(1000px,94vw);height:min(600px,72vh);position:relative;
+  background:
+    radial-gradient(circle at 25% 25%,#fff5 0 3px,transparent 4px),
+    linear-gradient(135deg,#d8b77b,#edd9a9 45%,#cda56c);
+  border:10px solid #79502a;border-radius:30px;
+  box-shadow:0 12px 30px #0004;overflow:hidden;
+}
+.map:before{
+  content:"";position:absolute;inset:18px;border:2px dashed #8b6338;
+  border-radius:20px;pointer-events:none;
+}
+.map-title{
+  position:absolute;top:18px;left:0;right:0;text-align:center;
+  font:700 28px Georgia;color:#563518;text-shadow:1px 1px #fff8;
+}
+.path{
+  position:absolute;left:10%;right:10%;top:54%;height:8px;
+  background:#80582d;transform:rotate(-5deg);border-radius:10px;
+  box-shadow:0 0 0 3px #dcbf8b;
+}
+.island{
+  position:absolute;border-radius:48% 52% 45% 55%;
+  background:#9caf72;opacity:.82;box-shadow:inset 0 0 20px #65764a;
+}
+.i1{width:180px;height:105px;left:5%;top:25%;transform:rotate(-12deg)}
+.i2{width:210px;height:120px;right:5%;top:32%;transform:rotate(10deg)}
+.i3{width:150px;height:85px;left:38%;bottom:8%;transform:rotate(5deg)}
+.water{position:absolute;width:130px;height:55px;border-radius:50%;background:#7ca9a5aa}
+.w1{left:28%;top:18%}.w2{right:20%;bottom:20%}
+.marker{
+  position:absolute;width:74px;height:74px;border-radius:50%;
+  background:#fff8dc;border:4px solid #6c451f;
+  display:flex;align-items:center;justify-content:center;
+  font-size:29px;cursor:pointer;box-shadow:0 5px 10px #0004;
+  transition:.2s;z-index:4;
+}
+.marker:hover{transform:scale(1.1)}
+.marker.locked{filter:grayscale(1);opacity:.45;cursor:not-allowed}
+.m1{left:13%;top:45%}.m2{left:38%;top:32%}.m3{right:23%;top:43%}
+.m4{right:10%;bottom:12%}
+.marker-label{
+  position:absolute;top:76px;left:50%;transform:translateX(-50%);
+  white-space:nowrap;font:700 15px Georgia;color:#54351c;
+}
+.compass{position:absolute;right:22px;top:75px;font-size:45px}
+.palm{position:absolute;font-size:50px;opacity:.8}
+.p1{left:4%;bottom:7%}.p2{right:4%;top:12%}
+.question-card{margin:auto;max-width:850px;width:100%}
+.expression{
+  font-family:"Courier New",monospace;font-size:30px;font-weight:bold;
+  background:#ead8b4;border-radius:14px;padding:22px;text-align:center;
+  margin:20px 0;border:2px solid #9b6b35;
+}
+.context{font-size:18px;line-height:1.5}
+.feedback{min-height:34px;font-weight:bold;margin:10px 0}
+.progress{font-weight:bold;color:#68451f;margin-bottom:10px}
+.next{margin-top:12px}
+.treasure{
+  font-size:90px;margin:5px;
+}
+@media(max-width:700px){
+  .slide{padding:16px}.map{height:68vh}
+  .marker{width:58px;height:58px;font-size:23px}
+  .marker-label{font-size:11px;top:60px}
+  .expression{font-size:23px}
+  .i1{width:120px}.i2{width:130px}
+}
+
+.scorebar{
+  position:absolute;top:14px;right:20px;z-index:20;
+  background:#fff4c7;border:3px solid #8a5a28;border-radius:18px;
+  padding:9px 16px;font-weight:bold;font-size:18px;
+  box-shadow:0 4px 10px #0003;
+}
+
+html,body{width:100%;min-width:0} body{overflow-x:hidden} button,input{touch-action:manipulation}
+@media(max-width:900px){.slide{min-height:100dvh;height:auto;overflow-y:auto;padding:18px 12px 28px}.card{padding:20px 16px;border-radius:18px}.context{font-size:16px}.expression{font-size:22px;padding:18px 10px;overflow-wrap:anywhere}input[type=text],input[type=number]{font-size:18px;min-height:50px}button{width:100%;max-width:420px;min-height:50px;margin:5px 0}.scorebar{position:sticky;top:0;align-self:flex-end;font-size:15px;padding:8px 12px;margin-bottom:8px}.map-wrap{min-height:62dvh}.map{width:96vw;height:60dvh;min-height:430px}.map-title{font-size:20px;top:14px;padding:0 50px}.compass{font-size:32px;right:12px;top:58px}.marker{width:62px;height:62px;font-size:22px}.m1{left:9%;top:44%}.m2{left:35%;top:30%}.m3{right:18%;top:42%}.m4{right:7%;bottom:10%}.marker-label{font-size:10px;top:62px}}
+@media(max-width:480px){.map{height:58dvh;min-height:390px}.island.i1{width:105px;height:70px}.island.i2{width:120px;height:75px}.island.i3{width:95px;height:60px}.water{width:85px;height:38px}.palm{font-size:36px}.treasure{font-size:65px}}
+
+.celebration{position:relative;overflow:hidden}
+.celebration h1{color:#7b4b22;font-size:clamp(28px,4vw,42px);margin:10px 0}
+.celebration h2{color:#a36a20;margin:8px 0 16px}
+.confetti{font-size:30px;letter-spacing:5px;animation:celebrate 1.4s ease-in-out infinite alternate}
+.award{font-size:25px;background:#ffedab;border:2px dashed #bd8a2e;border-radius:16px;padding:14px}
+@keyframes celebrate{from{transform:translateY(0) scale(1)}to{transform:translateY(-5px) scale(1.05)}}
+</style>
+</head>
+<body>
+
+<section id="welcome" class="slide active center">
+  <div class="card">
+    <div class="treasure">🗺️</div>
+    <h1>La búsqueda del tesoro matemático</h1>
+    <p style="font-size:20px"><b>Actividad de aprendizaje: polinomios aritméticos</b></p>
+    <p style="font-size:17px;line-height:1.6">
+      En esta aventura deberás recorrer un mapa y superar diferentes misiones.
+      En cada una encontrarás una situación relacionada con la vida cotidiana
+      y tendrás que resolver un <b>polinomio aritmético</b> aplicando correctamente
+      el orden de las operaciones.
+    </p>
+    <p style="font-size:17px;line-height:1.6">
+      <b>Tu reto:</b> lee con atención, resuelve la expresión y escribe únicamente
+      el resultado. Cada misión vale <b>10 puntos</b>. A medida que avances,
+      acumularás puntos hasta llegar al tesoro.
+    </p>
+    <p class="small">Escribe tu nombre para iniciar la expedición.</p><p class="small">🔒 Funciona sin conexión una vez descargada.</p>
+    <input id="studentName" type="text" placeholder="Escribe tu nombre">
+    <br>
+    <button onclick="startAdventure()">Comenzar aventura</button>
+  </div>
+</section>
+
+<section id="mapSlide" class="slide">
+  <div class="scorebar">⭐ Puntos: <span id="scoreMap">0</span> / 90</div>
+  <div style="text-align:center">
+    <span class="badge">Mapa de la expedición</span>
+    <h2 id="mapGreeting">¡Bienvenido!</h2>
+    <p>Cada nivel contiene 3 preguntas. Cada respuesta correcta suma <b>10 puntos</b>; completa las preguntas para desbloquear el siguiente nivel.</p>
+  </div>
+  <div class="map-wrap">
+    <div class="map">
+      <div class="map-title">EL MAPA DEL TESORO MATEMÁTICO</div>
+      <div class="compass">🧭</div>
+      <div class="island i1"></div><div class="island i2"></div><div class="island i3"></div>
+      <div class="water w1"></div><div class="water w2"></div>
+      <div class="path"></div>
+      <div class="palm p1">🌴</div><div class="palm p2">🌴</div>
+
+      <div class="marker m1" id="m1" onclick="openMission(1)">🏕️<span class="marker-label">Nivel 1</span></div>
+      <div class="marker m2 locked" id="m2" onclick="openMission(2)">🔒<span class="marker-label">Nivel 2</span></div>
+      <div class="marker m3 locked" id="m3" onclick="openMission(3)">🔒<span class="marker-label">Nivel 3</span></div>
+      <div class="marker m4 locked" id="m4" onclick="openTreasure()">🔒<span class="marker-label">Tesoro</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="missionSlide" class="slide center">
+  <div class="scorebar">⭐ Puntos acumulados: <span id="scoreMission">0</span> / 90</div>
+  <div class="question-card card">
+    <div class="progress" id="missionTitle"></div>
+    <h2 id="missionName"></h2>
+    <p class="context" id="context"></p>
+    <div class="expression" id="expression"></div>
+    <p><b>Resuelve respetando el orden de las operaciones y escribe solamente el resultado.</b></p>
+    <input id="answer" type="number" step="1" inputmode="numeric" placeholder="Escribe el resultado">
+    <div id="feedback" class="feedback"></div>
+    <p id="questionProgress" class="small"></p>
+    <button onclick="checkAnswer()">Comprobar resultado</button>
+    <button id="continueQuestion" class="next" style="display:none" onclick="continueAfterAnswer()">Siguiente pregunta</button>
+    <button id="backMap" class="next" style="display:none" onclick="showSlide('mapSlide')">Volver al mapa</button>
+  </div>
+</section>
+
+<section id="treasureSlide" class="slide center">
+  <div class="card celebration">
+    <div class="confetti" aria-hidden="true">🎉 ✨ 🎊 ✨ 🎉</div>
+    <div class="treasure">🏆💰</div>
+    <h1>¡FELICIDADES, EXPLORADOR/A!</h1>
+    <h2>¡Has encontrado el tesoro matemático!</h2>
+    <p id="finalText" style="font-size:21px"></p>
+    <p class="award">⭐ Puntaje final: <b id="finalScore">90 puntos</b> ⭐</p>
+    <p>Completaste las tres etapas y demostraste que con atención, perseverancia y razonamiento puedes superar grandes retos.</p>
+    <p><b>¡Misión cumplida!</b> 🗺️</p>
+    <button onclick="showSlide('mapSlide')">Volver al mapa</button>
+    <button onclick="restartAdventure()">Jugar de nuevo</button>
+  </div>
+</section>
+
+<script>
+document.addEventListener("keydown",function(e){if(e.key==="Enter"&&document.getElementById("missionSlide").classList.contains("active")&&document.activeElement?.id==="answer")checkAnswer();});
+const missions = {
+  1: { level:"NIVEL 1 · EXPLORADOR", name:"La cosecha", questions:[
+    {context:"En una finca se recolectaron 80 canastas de una parcela y 40 de otra. Se organizaron en 4 grupos iguales, luego cada grupo se multiplicó por 3 para preparar los viajes y finalmente se reservaron 20 canastas.", expression:"(80 + 40) ÷ 4 × 3 − 20", answer:70},
+    {context:"Para una actividad escolar había 150 litros de agua. Se utilizaron 30 litros; lo que quedó se repartió en 6 recipientes iguales. Cada recipiente abastecería 4 grupos y luego se agregaron 10 litros de reserva.", expression:"(150 − 30) ÷ 6 × 4 + 10", answer:90},
+    {context:"En la tienda escolar había 60 productos. Se calcula la sexta parte de 24 productos que llegaron, se multiplica por 5 para preparar paquetes y finalmente se descuentan 10 productos del total inicial.", expression:"60 + 24 ÷ 6 × 5 − 10", answer:70}
+  ]},
+  2: { level:"NIVEL 2 · AVENTURERO", name:"La ruta de los materiales", questions:[
+    {context:"La institución recibió 240 materiales. Se utilizaron 60 y luego llegaron 20 más. La cantidad resultante se repartió en 5 grupos; cada grupo recibió el doble y después se retiraron 15 materiales.", expression:"(240 − 60 + 20) ÷ 5 × 2 − 15", answer:65},
+    {context:"Para una jornada se tenían 300 recursos. Se descuenta el valor de dos lotes, de 80 y 20 unidades; ese conjunto se multiplica por 2 y se divide entre 5. Finalmente se agregan 10 recursos.", expression:"300 − (80 + 20) × 2 ÷ 5 + 10", answer:270},
+    {context:"Para una actividad había 180 materiales y se recibieron 60 más. El total se distribuyó entre grupos formados por 6 × 2 estudiantes. Después se agregaron 25 materiales recuperados y se utilizaron 15.", expression:"(180 + 60) ÷ (6 × 2) + 25 − 15", answer:30}
+  ]},
+  3: { level:"NIVEL 3 · MAESTRO DEL TESORO", name:"El camino al cofre", questions:[
+    {context:"Para una jornada se tenían 360 materiales. Se retiraron 3 grupos, cada uno formado por la suma de 40 y 20 materiales. Lo que quedó se repartió entre 6 equipos, se sumaron 25 materiales recuperados y finalmente se utilizaron 10.", expression:"[360 − (40 + 20) × 3] ÷ 6 + 25 − 10", answer:45},
+    {context:"Una expedición cuenta con 500 provisiones. Se calcula un grupo especial: 120 provisiones se dividen entre la diferencia entre 6 y 2, luego se multiplican por 3 y se agregan 40. Esa cantidad se descuenta del total y después se reciben 10 provisiones.", expression:"500 − [120 ÷ (6 − 2) × 3 + 40] + 10", answer:380},
+    {context:"Para cerrar la expedición había 420 materiales y se recibieron 60 más. Luego se retiraron 50 × 2 materiales. El resultado se repartió entre 4 equipos, se sumaron 15 materiales recuperados y finalmente se utilizaron 5.", expression:"[420 + 60 − (50 × 2)] ÷ 4 + 15 − 5", answer:105}
+  ]}
+};
+
+
+let current=1, questionIndex=0, unlocked=1, score=0, name="";
+let completedLevels=[];
+const pointsPerQuestion=10;
+
+function showSlide(id){
+  document.querySelectorAll(".slide").forEach(s=>s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  window.scrollTo(0,0);
+}
+function startAdventure(){
+  const v=document.getElementById("studentName").value.trim();
+  if(!v){alert("Por favor, escribe tu nombre para comenzar.");return;}
+  name=v; score=0; completedLevels=[]; unlocked=1;
+  updateScore();
+  document.getElementById("mapGreeting").textContent="¡Bienvenido/a, "+name+"!";
+  showSlide("mapSlide");
+}
+function updateScore(){
+  document.getElementById("scoreMap").textContent=score;
+  document.getElementById("scoreMission").textContent=score;
+}
+function openMission(n){
+  if(n>unlocked){alert("Este nivel todavía está bloqueado. Completa el anterior para continuar.");return;}
+  current=n; questionIndex=0; renderQuestion(); showSlide("missionSlide");
+}
+function renderQuestion(){
+  const m=missions[current], q=m.questions[questionIndex];
+  document.getElementById("missionTitle").textContent=m.level+" · PREGUNTA "+(questionIndex+1)+" DE "+m.questions.length;
+  document.getElementById("missionName").textContent=m.name;
+  document.getElementById("context").textContent=q.context;
+  document.getElementById("expression").textContent=q.expression;
+  document.getElementById("answer").value="";
+  document.getElementById("feedback").textContent="";
+  document.getElementById("answer").disabled=false;
+  document.querySelector("#missionSlide button[onclick='checkAnswer()']").disabled=false;
+  document.getElementById("backMap").style.display="none";
+  document.getElementById("continueQuestion").style.display="none";
+  document.getElementById("questionProgress").textContent="Pregunta "+(questionIndex+1)+" de "+m.questions.length+" · 10 puntos";
+}
+function checkAnswer(){
+  const input=document.getElementById("answer"), value=Number(input.value);
+  const feedback=document.getElementById("feedback"), q=missions[current].questions[questionIndex];
+  if(input.value===""){feedback.textContent="Escribe un resultado antes de comprobar.";return;}
+  if(!Number.isInteger(value)){feedback.textContent="Escribe únicamente un número entero.";return;}
+  if(value===q.answer){
+    feedback.textContent="✅ ¡Correcto! Ganaste 10 puntos.";
+    score+=pointsPerQuestion; updateScore();
+    input.disabled=true;
+    document.querySelector("#missionSlide button[onclick='checkAnswer()']").disabled=true;
+    const btn=document.getElementById("continueQuestion");
+    btn.style.display="inline-block";
+    btn.textContent=questionIndex < missions[current].questions.length-1 ? "Siguiente pregunta" : "Terminar nivel";
+  }else{
+    feedback.textContent="❌ Aún no. Revisa el orden de las operaciones y vuelve a intentarlo.";
+  }
+}
+function continueAfterAnswer(){
+  if(questionIndex < missions[current].questions.length-1){
+    questionIndex++; renderQuestion(); return;
+  }
+  if(!completedLevels.includes(current)) completedLevels.push(current);
+  if(current<3){
+    unlocked=Math.max(unlocked,current+1);
+    const next=document.getElementById("m"+(current+1));
+    next.classList.remove("locked");
+    next.innerHTML="🧭<span class='marker-label'>Nivel "+(current+1)+"</span>";
+  }else{
+    const treasure=document.getElementById("m4");
+    treasure.classList.remove("locked");
+    treasure.innerHTML="🏆<span class='marker-label'>Tesoro</span>";
+  }
+  showSlide("mapSlide");
+}
+function restartAdventure(){
+  score=0; current=1; questionIndex=0; unlocked=1; completedLevels=[];
+  updateScore();
+  const m2=document.getElementById("m2"), m3=document.getElementById("m3"), m4=document.getElementById("m4");
+  m2.classList.add("locked"); m2.innerHTML="🔒<span class='marker-label'>Nivel 2</span>";
+  m3.classList.add("locked"); m3.innerHTML="🔒<span class='marker-label'>Nivel 3</span>";
+  m4.classList.add("locked"); m4.innerHTML="🔒<span class='marker-label'>Tesoro</span>";
+  showSlide("mapSlide");
+}
+function openTreasure(){
+  if(completedLevels.length<3){alert("El tesoro está protegido. Completa los tres niveles primero.");return;}
+  document.getElementById("finalText").textContent="¡Excelente trabajo, "+name+"! Has conseguido "+score+" de 90 puntos. Tu razonamiento matemático te permitió llegar hasta el tesoro.";
+  document.getElementById("finalScore").textContent=score+" puntos";
+  showSlide("treasureSlide");
+}
+</script>
+</body>
+</html>
